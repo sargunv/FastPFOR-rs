@@ -1,11 +1,11 @@
 #![expect(clippy::identity_op)]
 
 /// Unpacks 32 integers from `input` into `output` using `bit` bits per integer.
-#[expect(
-    clippy::inline_always,
-    reason = "critical hot path: inlining these 33 dispatch arms eliminates indirect calls in the decode loop"
-)]
-#[inline(always)]
+///
+/// Not forced inline: the page decoder calls it from three places, and three
+/// copies of the 33 unrolled kernels cost far more code (about 55 KB of wasm)
+/// than the call costs time (nothing measurable decoding whole tiles).
+#[inline]
 pub fn fast_unpack(input: &[u32], inpos: usize, output: &mut [u32], outpos: usize, bit: u8) {
     match bit {
         0 => fast_unpack0(output, outpos),
